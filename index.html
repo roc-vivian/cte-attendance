@@ -4,398 +4,109 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>CTE Attendance</title>
-<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "@azure/msal-browser": "https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.10.0/lib/msal-browser.esm.min.js"
+  }
+}
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
-
   :root {
-    --bg: #F4F3EF;
-    --surface: #FFFFFF;
-    --surface2: #F9F8F5;
-    --border: rgba(0,0,0,0.08);
-    --border-strong: rgba(0,0,0,0.15);
-    --text: #1A1A18;
-    --text-2: #6B6B64;
-    --text-3: #9B9B92;
-    --accent: #1B4F8A;
-    --accent-light: #E8EFF8;
-    --accent-text: #0D2E52;
-    --danger: #C0392B;
-    --danger-light: #FDECEA;
-    --danger-text: #7B241C;
-    --success: #1E7A4A;
-    --success-light: #E8F5EE;
-    --success-text: #145233;
-    --radius: 10px;
-    --radius-lg: 14px;
-    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --bg:#F4F3EF;--surface:#FFF;--surface2:#F9F8F5;--border:rgba(0,0,0,0.08);
+    --border-strong:rgba(0,0,0,0.15);--text:#1A1A18;--text-2:#6B6B64;--text-3:#9B9B92;
+    --accent:#1B4F8A;--accent-light:#E8EFF8;--accent-text:#0D2E52;
+    --danger:#C0392B;--danger-light:#FDECEA;--danger-text:#7B241C;
+    --success:#1E7A4A;--success-light:#E8F5EE;--success-text:#145233;
+    --radius:10px;--radius-lg:14px;--shadow:0 1px 3px rgba(0,0,0,0.06);
   }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    font-family: 'DM Sans', system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 0;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  .top-bar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  .top-bar-left { display: flex; align-items: center; gap: 10px; }
-
-  .logo-mark {
-    width: 32px; height: 32px;
-    background: var(--accent);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    color: white;
-    font-size: 14px;
-    font-weight: 600;
-    font-family: 'DM Mono', monospace;
-    letter-spacing: -0.5px;
-  }
-
-  .app-title { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; }
-  .app-subtitle { font-size: 12px; color: var(--text-3); font-family: 'DM Mono', monospace; }
-
-  .user-chip {
-    display: flex; align-items: center; gap: 6px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 99px;
-    padding: 5px 12px 5px 6px;
-    font-size: 12px;
-    color: var(--text-2);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .user-chip:hover { border-color: var(--border-strong); }
-  .user-avatar {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: var(--accent-light);
-    color: var(--accent-text);
-    font-size: 10px; font-weight: 600;
-    display: flex; align-items: center; justify-content: center;
-  }
-
-  .container { max-width: 540px; margin: 0 auto; padding: 20px 16px 40px; }
-
-  .date-header {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--text-3);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-    padding-left: 2px;
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    margin-bottom: 12px;
-    box-shadow: var(--shadow);
-  }
-
-  .card-label {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-3);
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-
-  select {
-    width: 100%;
-    padding: 11px 14px;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    background: var(--surface2);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6B64' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    cursor: pointer;
-    transition: border-color 0.15s;
-    outline: none;
-  }
-  select:focus { border-color: var(--accent); }
-
-  .block-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .block-btn {
-    padding: 12px 8px;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    background: var(--surface2);
-    color: var(--text-2);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.15s;
-    outline: none;
-  }
-  .block-btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent-text); }
-  .block-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
-  .block-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-  .roster-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-
-  .absent-pill {
-    font-size: 12px;
-    font-weight: 500;
-    padding: 3px 10px;
-    border-radius: 99px;
-    background: var(--danger-light);
-    color: var(--danger-text);
-    transition: opacity 0.2s;
-  }
-  .absent-pill.hidden { opacity: 0; }
-
-  .student-list { display: flex; flex-direction: column; gap: 5px; }
-
-  .student-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 11px 14px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: all 0.12s;
-    user-select: none;
-    background: var(--surface);
-  }
-  .student-row:hover { background: var(--surface2); border-color: var(--border-strong); }
-  .student-row:active { transform: scale(0.99); }
-  .student-row.absent {
-    background: var(--danger-light);
-    border-color: rgba(192,57,43,0.2);
-  }
-  .student-row.absent:hover { background: #FBDBD8; }
-
-  .student-info {}
-  .student-name { font-size: 14px; font-weight: 500; color: var(--text); transition: color 0.12s; }
-  .student-row.absent .student-name { color: var(--danger-text); }
-  .student-meta { font-size: 12px; color: var(--text-3); margin-top: 1px; transition: color 0.12s; }
-  .student-row.absent .student-meta { color: rgba(123,36,28,0.6); }
-
-  .status-tag {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 3px 9px;
-    border-radius: 99px;
-    font-family: 'DM Mono', monospace;
-    letter-spacing: 0.02em;
-    flex-shrink: 0;
-  }
-  .tag-present { background: var(--success-light); color: var(--success-text); }
-  .tag-absent { background: var(--danger-light); color: var(--danger-text); border: 1px solid rgba(192,57,43,0.15); }
-
-  .divider { height: 1px; background: var(--border); margin: 16px 0; }
-
-  .submit-btn {
-    width: 100%;
-    padding: 14px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s;
-    letter-spacing: -0.1px;
-    outline: none;
-  }
-  .submit-btn:hover:not(:disabled) { background: var(--accent-text); }
-  .submit-btn:active:not(:disabled) { transform: scale(0.99); }
-  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .loading-spinner {
-    display: inline-block;
-    width: 14px; height: 14px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    margin-right: 8px;
-    vertical-align: middle;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .success-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 36px 20px;
-    text-align: center;
-    box-shadow: var(--shadow);
-  }
-  .success-icon {
-    width: 52px; height: 52px;
-    background: var(--success-light);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 16px;
-    font-size: 22px;
-  }
-  .success-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.3px; }
-  .success-meta { font-size: 13px; color: var(--text-2); line-height: 1.7; margin-bottom: 6px; }
-  .success-detail {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px 14px;
-    margin: 14px 0 20px;
-    text-align: left;
-  }
-  .success-detail-row { font-size: 13px; color: var(--text-2); padding: 3px 0; }
-  .success-detail-row strong { color: var(--text); font-weight: 500; }
-  .reset-btn {
-    padding: 11px 24px;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius);
-    background: var(--surface);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s;
-    outline: none;
-  }
-  .reset-btn:hover { background: var(--surface2); }
-
-  .error-banner {
-    background: var(--danger-light);
-    border: 1px solid rgba(192,57,43,0.2);
-    border-radius: var(--radius);
-    padding: 12px 14px;
-    font-size: 13px;
-    color: var(--danger-text);
-    margin-bottom: 12px;
-    line-height: 1.5;
-    display: none;
-  }
-
-  .login-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 40px 24px;
-    text-align: center;
-    box-shadow: var(--shadow);
-  }
-  .login-logo {
-    width: 56px; height: 56px;
-    background: var(--accent);
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 20px;
-    font-size: 22px; font-weight: 600;
-    color: white;
-    font-family: 'DM Mono', monospace;
-  }
-  .login-title { font-size: 20px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.3px; }
-  .login-sub { font-size: 14px; color: var(--text-2); margin-bottom: 24px; line-height: 1.6; }
-  .login-btn {
-    width: 100%;
-    padding: 13px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    outline: none;
-  }
-  .login-btn:hover { background: var(--accent-text); }
-  .ms-icon { width: 18px; height: 18px; }
-
-  .status-msg {
-    font-size: 13px;
-    color: var(--text-3);
-    text-align: center;
-    padding: 20px;
-    font-family: 'DM Mono', monospace;
-  }
-
-  #screen-login, #screen-main, #screen-success { display: none; }
-  #screen-login.active, #screen-main.active, #screen-success.active { display: block; }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+  .top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .top-bar-left{display:flex;align-items:center;gap:10px}
+  .logo-mark{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:600;font-family:'DM Mono',monospace}
+  .app-title{font-size:15px;font-weight:600;color:var(--text)}
+  .user-chip{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:5px 12px 5px 6px;font-size:12px;color:var(--text-2);cursor:pointer}
+  .user-avatar{width:22px;height:22px;border-radius:50%;background:var(--accent-light);color:var(--accent-text);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center}
+  .container{max-width:540px;margin:0 auto;padding:20px 16px 40px}
+  .date-header{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:16px;padding-left:2px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:12px;box-shadow:var(--shadow)}
+  .card-label{font-size:11px;font-weight:500;color:var(--text-3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:10px}
+  select{width:100%;padding:11px 14px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6B64' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;cursor:pointer;outline:none}
+  select:focus{border-color:var(--accent)}
+  .block-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .block-btn{padding:12px 8px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--surface2);color:var(--text-2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;text-align:center;transition:all 0.15s;outline:none}
+  .block-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent-text)}
+  .block-btn.active{background:var(--accent);border-color:var(--accent);color:white}
+  .block-btn:disabled{opacity:0.35;cursor:not-allowed}
+  .roster-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .absent-pill{font-size:12px;font-weight:500;padding:3px 10px;border-radius:99px;background:var(--danger-light);color:var(--danger-text);transition:opacity 0.2s}
+  .absent-pill.hidden{opacity:0}
+  .student-list{display:flex;flex-direction:column;gap:5px}
+  .student-row{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all 0.12s;user-select:none;background:var(--surface)}
+  .student-row:hover{background:var(--surface2);border-color:var(--border-strong)}
+  .student-row.absent{background:var(--danger-light);border-color:rgba(192,57,43,0.2)}
+  .student-name{font-size:14px;font-weight:500;color:var(--text);transition:color 0.12s}
+  .student-row.absent .student-name{color:var(--danger-text)}
+  .student-meta{font-size:12px;color:var(--text-3);margin-top:1px}
+  .student-row.absent .student-meta{color:rgba(123,36,28,0.6)}
+  .status-tag{font-size:11px;font-weight:500;padding:3px 9px;border-radius:99px;font-family:'DM Mono',monospace;flex-shrink:0}
+  .tag-present{background:var(--success-light);color:var(--success-text)}
+  .tag-absent{background:var(--danger-light);color:var(--danger-text);border:1px solid rgba(192,57,43,0.15)}
+  .divider{height:1px;background:var(--border);margin:16px 0}
+  .submit-btn{width:100%;padding:14px;background:var(--accent);color:white;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;transition:all 0.15s;outline:none}
+  .submit-btn:hover:not(:disabled){background:var(--accent-text)}
+  .submit-btn:disabled{opacity:0.4;cursor:not-allowed}
+  .loading-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;margin-right:8px;vertical-align:middle}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .success-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px 20px;text-align:center;box-shadow:var(--shadow)}
+  .success-icon{width:52px;height:52px;background:var(--success-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px}
+  .success-title{font-size:18px;font-weight:600;margin-bottom:8px}
+  .success-meta{font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:6px}
+  .success-detail{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin:14px 0 20px;text-align:left}
+  .success-detail-row{font-size:13px;color:var(--text-2);padding:3px 0}
+  .success-detail-row strong{color:var(--text);font-weight:500}
+  .reset-btn{padding:11px 24px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer}
+  .error-banner{background:var(--danger-light);border:1px solid rgba(192,57,43,0.2);border-radius:var(--radius);padding:12px 14px;font-size:13px;color:var(--danger-text);margin-bottom:12px;line-height:1.5;display:none}
+  .login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px 24px;text-align:center;box-shadow:var(--shadow)}
+  .login-logo{width:56px;height:56px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:22px;font-weight:600;color:white;font-family:'DM Mono',monospace}
+  .login-title{font-size:20px;font-weight:600;margin-bottom:6px}
+  .login-sub{font-size:14px;color:var(--text-2);margin-bottom:24px;line-height:1.6}
+  .login-btn{width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+  .login-btn:hover{background:var(--accent-text)}
+  .status-msg{font-size:13px;color:var(--text-3);text-align:center;padding:20px;font-family:'DM Mono',monospace}
+  #screen-login,#screen-main,#screen-success{display:none}
+  #screen-login.active,#screen-main.active,#screen-success.active{display:block}
 </style>
 </head>
 <body>
-
 <div class="top-bar">
   <div class="top-bar-left">
     <div class="logo-mark">CTE</div>
-    <div>
-      <div class="app-title">Attendance</div>
-    </div>
+    <div><div class="app-title">Attendance</div></div>
   </div>
-  <div class="user-chip" id="user-chip" style="display:none;" onclick="signOut()">
+  <div class="user-chip" id="user-chip" style="display:none" onclick="signOut()">
     <div class="user-avatar" id="user-avatar">?</div>
     <span id="user-name-short">Sign out</span>
   </div>
 </div>
-
 <div class="container">
   <div id="status-msg" class="status-msg">Initializing...</div>
-
-  <!-- LOGIN SCREEN -->
   <div id="screen-login">
     <div class="login-card">
       <div class="login-logo">CTE</div>
       <div class="login-title">CTE Attendance</div>
-      <div class="login-sub">Sign in with your Microsoft school account to submit attendance for your class.</div>
+      <div class="login-sub">Sign in with your Microsoft school account to submit attendance.</div>
       <button class="login-btn" onclick="signIn()">
-        <svg class="ms-icon" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
-          <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
-          <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
-          <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
-        </svg>
+        <svg width="18" height="18" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg>
         Sign in with Microsoft
       </button>
     </div>
   </div>
-
-  <!-- MAIN SCREEN -->
   <div id="screen-main">
     <div class="date-header" id="date-header"></div>
     <div id="error-banner" class="error-banner"></div>
-
     <div class="card">
       <div class="card-label">Instructor</div>
       <select id="instructor-select" onchange="onInstructorChange()">
@@ -405,7 +116,6 @@
         <option value="James">James — Apartment Maintenance</option>
       </select>
     </div>
-
     <div class="card">
       <div class="card-label">Block</div>
       <div class="block-grid" id="block-grid">
@@ -414,10 +124,9 @@
         <button class="block-btn" disabled onclick="selectBlock('4th')">4th</button>
       </div>
     </div>
-
-    <div class="card" id="roster-card" style="display:none;">
+    <div class="card" id="roster-card" style="display:none">
       <div class="roster-header">
-        <div class="card-label" style="margin-bottom:0;">Students</div>
+        <div class="card-label" style="margin-bottom:0">Students — tap to mark absent</div>
         <div class="absent-pill hidden" id="absent-pill">0 absent</div>
       </div>
       <div class="student-list" id="student-list"></div>
@@ -425,8 +134,6 @@
       <button class="submit-btn" id="submit-btn" onclick="submitAttendance()">Submit attendance</button>
     </div>
   </div>
-
-  <!-- SUCCESS SCREEN -->
   <div id="screen-success">
     <div class="success-card">
       <div class="success-icon">✓</div>
@@ -438,25 +145,17 @@
   </div>
 </div>
 
-<script>
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
+<script type="module">
+import * as msalBrowser from '@azure/msal-browser';
+
 const CLIENT_ID   = 'f0bd9b6b-812b-47b8-b1d7-3b9a50981380';
 const TENANT_ID   = 'da0049e7-193f-4cca-9cf3-565e3fa8e0f9';
 const SITE_HOSTNAME = 'roccharlotte.sharepoint.com';
 const SITE_PATH     = '/sites/POBCampus_WCE';
 const FILE_ID       = '2E3E75EC-7F1A-4C00-B723-A6A95F9C820F';
 
-// Tab names in Excel (must match exactly)
-const SCHOOL_TABS = { HUHS:'HUHS', POB:'POB', WCHS:'WCHS', WMHS:'WMHS' };
-
-const SCHOOL_NAMES = {
-  HUHS: 'Harding University High',
-  POB:  'Phillip O Berry Academy',
-  WCHS: 'West Charlotte High School',
-  WMHS: 'West Mecklenburg High'
-};
-
-const INSTRUCTOR_BLOCKS = { Tom:['1st','2nd','4th'], Chris:['1st','2nd','4th'], James:['2nd','4th'] };
+const SCHOOL_NAMES = {HUHS:'Harding University High',POB:'Phillip O Berry Academy',WCHS:'West Charlotte High School',WMHS:'West Mecklenburg High'};
+const INSTRUCTOR_BLOCKS = {Tom:['1st','2nd','4th'],Chris:['1st','2nd','4th'],James:['2nd','4th']};
 
 const ROSTER = [
   {name:'Haywood, Usef',school:'HUHS',program:'Carpentry III',block:'1st',instructor:'Tom'},
@@ -533,29 +232,22 @@ const ROSTER = [
   {name:'Venable, Kamron',school:'WMHS',program:'Electrical I',block:'4th',instructor:'Chris'},
 ];
 
-// ─── MSAL SETUP ───────────────────────────────────────────────────────────────
 const msalConfig = {
   auth: {
     clientId: CLIENT_ID,
     authority: `https://login.microsoftonline.com/${TENANT_ID}`,
     redirectUri: window.location.origin + window.location.pathname,
   },
-  cache: { cacheLocation: 'sessionStorage' }
+  cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: true }
 };
 
-const msalInstance = new msal.PublicClientApplication(msalConfig);
-const SCOPES = ['Files.ReadWrite', 'Sites.ReadWrite.All'];
+const msalInstance = new msalBrowser.PublicClientApplication(msalConfig);
+const SCOPES = ['Files.ReadWrite','Sites.ReadWrite.All'];
 
-let currentAccount = null;
-let currentInstructor = '';
-let currentBlock = '';
-let absentStudents = new Set();
-let currentRoster = [];
-let accessToken = null;
-let siteId = null;
-let driveId = null;
+let currentAccount=null, currentInstructor='', currentBlock='';
+let absentStudents=new Set(), currentRoster=[], accessToken=null;
+let siteId=null, driveId=null;
 
-// ─── AUTH ──────────────────────────────────────────────────────────────────────
 async function init() {
   setStatus('');
   try {
@@ -575,28 +267,20 @@ async function init() {
       showScreen('login');
     }
   } catch(e) {
-    setStatus('Error initializing. Please refresh.');
+    setStatus('Error: ' + e.message);
     console.error(e);
   }
 }
 
-async function signIn() {
-  try {
-    await msalInstance.loginRedirect({ scopes: SCOPES });
-  } catch(e) { console.error(e); }
-}
-
-function signOut() {
-  msalInstance.logoutRedirect({ account: currentAccount });
-}
+async function signIn() { await msalInstance.loginRedirect({ scopes: SCOPES }); }
+window.signOut = () => msalInstance.logoutRedirect({ account: currentAccount });
 
 async function getToken() {
   try {
     const res = await msalInstance.acquireTokenSilent({ scopes: SCOPES, account: currentAccount });
     accessToken = res.accessToken;
   } catch(e) {
-    const res = await msalInstance.acquireTokenRedirect({ scopes: SCOPES });
-    accessToken = res.accessToken;
+    await msalInstance.acquireTokenRedirect({ scopes: SCOPES });
   }
 }
 
@@ -609,166 +293,73 @@ function showUserChip() {
   document.getElementById('user-name-short').textContent = name.split(' ')[0];
 }
 
-// ─── GRAPH API ─────────────────────────────────────────────────────────────────
 async function graphGet(url) {
-  const r = await fetch(`https://graph.microsoft.com/v1.0${url}`, {
-    headers: { Authorization: `Bearer ${accessToken}` }
-  });
-  if (!r.ok) throw new Error(`Graph error ${r.status}: ${await r.text()}`);
+  const r = await fetch(`https://graph.microsoft.com/v1.0${url}`,{headers:{Authorization:`Bearer ${accessToken}`}});
+  if (!r.ok) throw new Error(`Graph ${r.status}: ${await r.text()}`);
   return r.json();
 }
-
 async function graphPatch(url, body) {
-  const r = await fetch(`https://graph.microsoft.com/v1.0${url}`, {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!r.ok) throw new Error(`Graph PATCH error ${r.status}: ${await r.text()}`);
-  return r.json();
-}
-
-async function graphPost(url, body) {
-  const r = await fetch(`https://graph.microsoft.com/v1.0${url}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!r.ok) throw new Error(`Graph POST error ${r.status}: ${await r.text()}`);
+  const r = await fetch(`https://graph.microsoft.com/v1.0${url}`,{method:'PATCH',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if (!r.ok) throw new Error(`PATCH ${r.status}: ${await r.text()}`);
   return r.json();
 }
 
 async function resolveFileIds() {
-  const siteData = await graphGet(`/sites/${SITE_HOSTNAME}:${SITE_PATH}`);
-  siteId = siteData.id;
-  const fileData = await graphGet(`/sites/${siteId}/drive/items/${FILE_ID}`);
-  driveId = fileData.parentReference.driveId;
+  const site = await graphGet(`/sites/${SITE_HOSTNAME}:${SITE_PATH}`);
+  siteId = site.id;
+  const file = await graphGet(`/sites/${siteId}/drive/items/${FILE_ID}`);
+  driveId = file.parentReference.driveId;
 }
 
-// ─── EXCEL LOGIC ───────────────────────────────────────────────────────────────
-function excelBase() {
-  return `/drives/${driveId}/items/${FILE_ID}/workbook`;
-}
-
-async function getUsedRange(sheet) {
-  return graphGet(`${excelBase()}/worksheets/${encodeURIComponent(sheet)}/usedRange`);
-}
+function excelBase() { return `/drives/${driveId}/items/${FILE_ID}/workbook`; }
+function colLetter(n) { let s=''; while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26);} return s; }
+function todayStr() { const d=new Date(); return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`; }
 
 async function updateCell(sheet, address, value) {
-  await graphPatch(`${excelBase()}/worksheets/${encodeURIComponent(sheet)}/range(address='${address}')`, {
-    values: [[value]]
-  });
-}
-
-async function getSheetRange(sheet, address) {
-  return graphGet(`${excelBase()}/worksheets/${encodeURIComponent(sheet)}/range(address='${address}')`);
-}
-
-function colLetter(n) {
-  let s = '';
-  while (n > 0) { n--; s = String.fromCharCode(65 + n % 26) + s; n = Math.floor(n / 26); }
-  return s;
-}
-
-function todayStr() {
-  const d = new Date();
-  const m = String(d.getMonth()+1).padStart(2,'0');
-  const day = String(d.getDate()).padStart(2,'0');
-  const y = d.getFullYear();
-  return `${m}/${day}/${y}`;
+  await graphPatch(`${excelBase()}/worksheets/${encodeURIComponent(sheet)}/range(address='${address}')`,{values:[[value]]});
 }
 
 async function processSheet(sheetName, studentsInSheet, absentSet) {
-  const range = await getUsedRange(sheetName);
+  const range = await graphGet(`${excelBase()}/worksheets/${encodeURIComponent(sheetName)}/usedRange`);
   const vals = range.values;
   if (!vals || vals.length === 0) return;
-
   const headerRow = vals[0];
   const today = todayStr();
-
-  // Find or create today's column
-  let todayColIdx = headerRow.findIndex(h => {
-    if (!h) return false;
-    const s = String(h);
-    // Normalize Excel date serial or string match
-    return s === today || s.startsWith(today);
-  });
-
-  let todayColLetter;
+  let todayColIdx = headerRow.findIndex(h => h && String(h).startsWith(today));
   if (todayColIdx === -1) {
-    // Add new column at end
     todayColIdx = headerRow.length;
-    todayColLetter = colLetter(todayColIdx + 1);
-    await updateCell(sheetName, `${todayColLetter}1`, today);
-  } else {
-    todayColLetter = colLetter(todayColIdx + 1);
+    await updateCell(sheetName, `${colLetter(todayColIdx+1)}1`, today);
   }
-
-  // Find name column (col A assumed = index 0)
-  // Find "Absent day" column
+  const todayColLetter = colLetter(todayColIdx+1);
   const absentDayColIdx = headerRow.findIndex(h => h && String(h).toLowerCase().includes('absent day'));
-
-  // Process each student row
-  for (let r = 1; r < vals.length; r++) {
+  for (let r=1; r<vals.length; r++) {
     const rowName = vals[r][0];
     if (!rowName) continue;
-    const rowNum = r + 1; // 1-indexed, header is row 1
-
-    // Check if this student is in our current roster submission
-    const isInSubmission = studentsInSheet.some(s => s.name === rowName || rowName === s.name);
-    if (!isInSubmission) continue;
-
+    if (!studentsInSheet.some(s => s.name === rowName)) continue;
+    const rowNum = r+1;
     const isAbsent = absentSet.has(rowName);
-    const status = isAbsent ? 'A' : 'P';
-
-    // Write P or A for today
-    await updateCell(sheetName, `${todayColLetter}${rowNum}`, status);
-
-    // Increment absent count if absent
+    await updateCell(sheetName, `${todayColLetter}${rowNum}`, isAbsent ? 'A' : 'P');
     if (isAbsent && absentDayColIdx !== -1) {
-      const absentDayColLetter = colLetter(absentDayColIdx + 1);
-      const currentCount = parseInt(vals[r][absentDayColIdx]) || 0;
-      await updateCell(sheetName, `${absentDayColLetter}${rowNum}`, currentCount + 1);
+      const cur = parseInt(vals[r][absentDayColIdx]) || 0;
+      await updateCell(sheetName, `${colLetter(absentDayColIdx+1)}${rowNum}`, cur+1);
     }
   }
 }
 
-// ─── UI STATE ──────────────────────────────────────────────────────────────────
 function showScreen(name) {
   document.getElementById('status-msg').style.display = 'none';
-  ['login','main','success'].forEach(s => {
-    document.getElementById(`screen-${s}`).classList.remove('active');
-  });
+  ['login','main','success'].forEach(s => document.getElementById(`screen-${s}`).classList.remove('active'));
   document.getElementById(`screen-${name}`).classList.add('active');
-
-  if (name === 'main') {
-    const d = new Date();
-    document.getElementById('date-header').textContent =
-      d.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
-  }
+  if (name==='main') document.getElementById('date-header').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
 }
+function setStatus(msg) { const el=document.getElementById('status-msg'); el.textContent=msg; el.style.display=msg?'block':'none'; }
+function showError(msg) { const el=document.getElementById('error-banner'); el.textContent=msg; el.style.display=msg?'block':'none'; }
 
-function setStatus(msg) {
-  const el = document.getElementById('status-msg');
-  el.textContent = msg;
-  el.style.display = msg ? 'block' : 'none';
-}
-
-function showError(msg) {
-  const el = document.getElementById('error-banner');
-  el.textContent = msg;
-  el.style.display = msg ? 'block' : 'none';
-}
-
-function onInstructorChange() {
+window.onInstructorChange = function() {
   currentInstructor = document.getElementById('instructor-select').value;
-  currentBlock = '';
-  absentStudents.clear();
-  updateBlockButtons();
-  document.getElementById('roster-card').style.display = 'none';
-  showError('');
-}
-
+  currentBlock=''; absentStudents.clear(); updateBlockButtons();
+  document.getElementById('roster-card').style.display='none'; showError('');
+};
 function updateBlockButtons() {
   const allowed = currentInstructor ? INSTRUCTOR_BLOCKS[currentInstructor] : [];
   ['1st','2nd','4th'].forEach(b => {
@@ -778,116 +369,68 @@ function updateBlockButtons() {
     btn.classList.remove('active');
   });
 }
-
-function selectBlock(block) {
+window.selectBlock = function(block) {
   if (!currentInstructor) return;
-  currentBlock = block;
-  absentStudents.clear();
-  document.querySelectorAll('.block-btn').forEach(b => b.classList.remove('active'));
+  currentBlock=block; absentStudents.clear();
+  document.querySelectorAll('.block-btn').forEach(b=>b.classList.remove('active'));
   document.querySelector(`.block-btn[onclick="selectBlock('${block}')"]`).classList.add('active');
-  renderRoster();
-  showError('');
-}
-
+  renderRoster(); showError('');
+};
 function renderRoster() {
-  currentRoster = ROSTER.filter(s => s.instructor === currentInstructor && s.block === currentBlock);
+  currentRoster = ROSTER.filter(s=>s.instructor===currentInstructor && s.block===currentBlock);
   const card = document.getElementById('roster-card');
-  if (currentRoster.length === 0) { card.style.display = 'none'; return; }
-  card.style.display = 'block';
-
+  if (!currentRoster.length) { card.style.display='none'; return; }
+  card.style.display='block';
   const list = document.getElementById('student-list');
-  list.innerHTML = '';
+  list.innerHTML='';
   currentRoster.forEach(student => {
     const absent = absentStudents.has(student.name);
     const div = document.createElement('div');
-    div.className = 'student-row' + (absent ? ' absent' : '');
-    div.innerHTML = `
-      <div class="student-info">
-        <div class="student-name">${student.name}</div>
-        <div class="student-meta">${student.program} · ${SCHOOL_NAMES[student.school]}</div>
-      </div>
-      <span class="status-tag ${absent ? 'tag-absent' : 'tag-present'}">${absent ? 'Absent' : 'Present'}</span>
-    `;
-    div.onclick = () => {
-      if (absentStudents.has(student.name)) absentStudents.delete(student.name);
-      else absentStudents.add(student.name);
-      renderRoster();
-    };
+    div.className='student-row'+(absent?' absent':'');
+    div.innerHTML=`<div><div class="student-name">${student.name}</div><div class="student-meta">${student.program} · ${SCHOOL_NAMES[student.school]}</div></div><span class="status-tag ${absent?'tag-absent':'tag-present'}">${absent?'Absent':'Present'}</span>`;
+    div.onclick=()=>{ if(absentStudents.has(student.name)) absentStudents.delete(student.name); else absentStudents.add(student.name); renderRoster(); };
     list.appendChild(div);
   });
-
-  const pill = document.getElementById('absent-pill');
-  const count = absentStudents.size;
-  if (count > 0) {
-    pill.textContent = `${count} absent`;
-    pill.classList.remove('hidden');
-  } else {
-    pill.classList.add('hidden');
-  }
+  const pill=document.getElementById('absent-pill');
+  const count=absentStudents.size;
+  pill.textContent=`${count} absent`;
+  count>0?pill.classList.remove('hidden'):pill.classList.add('hidden');
 }
-
-async function submitAttendance() {
-  if (!currentInstructor || !currentBlock || currentRoster.length === 0) return;
+window.submitAttendance = async function() {
+  if (!currentInstructor||!currentBlock||!currentRoster.length) return;
   showError('');
-
-  const btn = document.getElementById('submit-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="loading-spinner"></span>Writing to Excel...';
-
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true; btn.innerHTML='<span class="loading-spinner"></span>Writing to Excel...';
   try {
     await getToken();
-
-    // Group students by school
-    const bySchool = {};
-    currentRoster.forEach(s => {
-      if (!bySchool[s.school]) bySchool[s.school] = [];
-      bySchool[s.school].push(s);
-    });
-
-    // Process each school tab
-    for (const [school, students] of Object.entries(bySchool)) {
-      const tabName = SCHOOL_TABS[school];
-      await processSheet(tabName, students, absentStudents);
+    const bySchool={};
+    currentRoster.forEach(s=>{ if(!bySchool[s.school]) bySchool[s.school]=[]; bySchool[s.school].push(s); });
+    for (const [school,students] of Object.entries(bySchool)) {
+      await processSheet(school, students, absentStudents);
     }
-
-    // Build success summary
-    const absentList = [...absentStudents];
-    const dateStr = todayStr();
-    const schoolSummary = Object.entries(bySchool).map(([k,v]) => {
-      const absentCount = v.filter(s => absentStudents.has(s.name)).length;
-      return `<div class="success-detail-row"><strong>${SCHOOL_NAMES[k]}:</strong> ${absentCount > 0 ? absentCount + ' absent, ' + (v.length - absentCount) + ' present' : 'all present'}</div>`;
+    const absentList=[...absentStudents];
+    const schoolSummary=Object.entries(bySchool).map(([k,v])=>{
+      const ac=v.filter(s=>absentStudents.has(s.name)).length;
+      return `<div class="success-detail-row"><strong>${SCHOOL_NAMES[k]}:</strong> ${ac>0?ac+' absent, '+(v.length-ac)+' present':'all present'}</div>`;
     }).join('');
-
-    document.getElementById('success-meta').textContent =
-      `${currentInstructor} · ${currentBlock} block · ${dateStr}`;
-    document.getElementById('success-detail').innerHTML =
-      schoolSummary +
-      (absentList.length > 0
-        ? `<div class="success-detail-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);"><strong>Absent:</strong> ${absentList.join(', ')}</div>`
-        : '');
-
+    document.getElementById('success-meta').textContent=`${currentInstructor} · ${currentBlock} block · ${todayStr()}`;
+    document.getElementById('success-detail').innerHTML=schoolSummary+(absentList.length?`<div class="success-detail-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><strong>Absent:</strong> ${absentList.join(', ')}</div>`:'');
     showScreen('success');
   } catch(e) {
-    console.error(e);
-    showError('Error writing to Excel: ' + e.message + ' — Please try again or contact support.');
-    btn.disabled = false;
-    btn.textContent = 'Submit attendance';
+    console.error(e); showError('Error writing to Excel: '+e.message);
+    btn.disabled=false; btn.textContent='Submit attendance';
   }
-}
-
-function resetForm() {
-  currentInstructor = '';
-  currentBlock = '';
-  absentStudents.clear();
-  currentRoster = [];
-  document.getElementById('instructor-select').value = '';
+};
+window.resetForm = function() {
+  currentInstructor=''; currentBlock=''; absentStudents.clear(); currentRoster=[];
+  document.getElementById('instructor-select').value='';
   updateBlockButtons();
-  document.getElementById('roster-card').style.display = 'none';
-  document.getElementById('submit-btn').disabled = false;
-  document.getElementById('submit-btn').textContent = 'Submit attendance';
+  document.getElementById('roster-card').style.display='none';
+  document.getElementById('submit-btn').disabled=false;
+  document.getElementById('submit-btn').textContent='Submit attendance';
   showScreen('main');
-}
-
+};
+window.signIn = signIn;
 init();
 </script>
 </body>
