@@ -12,6 +12,7 @@
     --accent:#1B4F8A;--accent-light:#E8EFF8;--accent-text:#0D2E52;
     --danger:#C0392B;--danger-light:#FDECEA;--danger-text:#7B241C;
     --success:#1E7A4A;--success-light:#E8F5EE;--success-text:#145233;
+    --warning:#92600A;--warning-light:#FEF3E2;--warning-text:#7A4F08;
     --radius:10px;--radius-lg:14px;--shadow:0 1px 3px rgba(0,0,0,0.06);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -26,8 +27,9 @@
   .date-header{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:16px;padding-left:2px}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:12px;box-shadow:var(--shadow)}
   .card-label{font-size:11px;font-weight:500;color:var(--text-3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:10px}
-  select{width:100%;padding:11px 14px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6B64' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;cursor:pointer;outline:none}
-  select:focus{border-color:var(--accent)}
+  select,input[type=date]{width:100%;padding:11px 14px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border-color 0.15s}
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6B64' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-color:var(--surface2);cursor:pointer;}
+  select:focus,input[type=date]:focus{border-color:var(--accent)}
   .block-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .block-btn{padding:12px 8px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--surface2);color:var(--text-2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;text-align:center;transition:all 0.15s;outline:none}
   .block-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent-text)}
@@ -62,6 +64,7 @@
   .success-detail-row strong{color:var(--text);font-weight:500}
   .reset-btn{padding:11px 24px;border:1px solid var(--border-strong);border-radius:var(--radius);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer}
   .error-banner{background:var(--danger-light);border:1px solid rgba(192,57,43,0.2);border-radius:var(--radius);padding:12px 14px;font-size:13px;color:var(--danger-text);margin-bottom:12px;line-height:1.5;display:none}
+  .warning-banner{background:var(--warning-light);border:1px solid rgba(146,96,10,0.2);border-radius:var(--radius);padding:12px 14px;font-size:13px;color:var(--warning-text);margin-bottom:12px;line-height:1.5;display:none}
   .login-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px 24px;text-align:center;box-shadow:var(--shadow)}
   .login-logo{width:56px;height:56px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:22px;font-weight:600;color:white;font-family:'DM Mono',monospace}
   .login-title{font-size:20px;font-weight:600;margin-bottom:6px}
@@ -69,6 +72,10 @@
   .login-btn{width:100%;padding:13px;background:var(--accent);color:white;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
   .login-btn:hover{background:var(--accent-text)}
   .status-msg{font-size:13px;color:var(--text-3);text-align:center;padding:20px;font-family:'DM Mono',monospace}
+  .date-row{display:flex;align-items:center;gap:10px;margin-bottom:0}
+  .date-badge{font-size:12px;padding:4px 10px;border-radius:99px;font-family:'DM Mono',monospace;font-weight:500;white-space:nowrap;flex-shrink:0}
+  .badge-today{background:var(--success-light);color:var(--success-text)}
+  .badge-past{background:var(--warning-light);color:var(--warning-text)}
   #screen-login,#screen-main,#screen-success{display:none}
   #screen-login.active,#screen-main.active,#screen-success.active{display:block}
 </style>
@@ -86,6 +93,7 @@
 </div>
 <div class="container">
   <div id="status-msg" class="status-msg">Initializing...</div>
+
   <div id="screen-login">
     <div class="login-card">
       <div class="login-logo">CTE</div>
@@ -97,9 +105,20 @@
       </button>
     </div>
   </div>
+
   <div id="screen-main">
     <div class="date-header" id="date-header"></div>
     <div id="error-banner" class="error-banner"></div>
+    <div id="warning-banner" class="warning-banner"></div>
+
+    <div class="card">
+      <div class="card-label">Date</div>
+      <div class="date-row">
+        <input type="date" id="date-picker" onchange="onDateChange()">
+        <span class="date-badge badge-today" id="date-badge">Today</span>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-label">Instructor</div>
       <select id="instructor-select" onchange="onInstructorChange()">
@@ -109,6 +128,7 @@
         <option value="James">James — Apartment Maintenance</option>
       </select>
     </div>
+
     <div class="card">
       <div class="card-label">Block</div>
       <div class="block-grid">
@@ -117,6 +137,7 @@
         <button class="block-btn" disabled onclick="selectBlock('4th')">4th</button>
       </div>
     </div>
+
     <div class="card" id="roster-card" style="display:none">
       <div class="roster-header">
         <div class="card-label" style="margin-bottom:0">Students — tap to mark absent</div>
@@ -127,6 +148,7 @@
       <button class="submit-btn" id="submit-btn" onclick="submitAttendance()">Submit attendance</button>
     </div>
   </div>
+
   <div id="screen-success">
     <div class="success-card">
       <div class="success-icon">✓</div>
@@ -139,14 +161,13 @@
 </div>
 
 <script>
-// ── CONFIG ────────────────────────────────────────────────────────────────────
-const CLIENT_ID   = 'f0bd9b6b-812b-47b8-b1d7-3b9a50981380';
-const TENANT_ID   = 'da0049e7-193f-4cca-9cf3-565e3fa8e0f9';
+const CLIENT_ID    = 'f0bd9b6b-812b-47b8-b1d7-3b9a50981380';
+const TENANT_ID    = 'da0049e7-193f-4cca-9cf3-565e3fa8e0f9';
 const REDIRECT_URI = 'https://roc-vivian.github.io/cte-attendance/';
-const SITE_HOSTNAME = 'roccharlotte.sharepoint.com';
-const SITE_PATH     = '/sites/POBCampus_WCE';
-const FILE_ID       = '2E3E75EC-7F1A-4C00-B723-A6A95F9C820F';
-const SCOPES = 'Files.ReadWrite Sites.ReadWrite.All openid profile';
+const SITE_HOSTNAME= 'roccharlotte.sharepoint.com';
+const SITE_PATH    = '/sites/POBCampus_WCE';
+const FILE_ID      = '2E3E75EC-7F1A-4C00-B723-A6A95F9C820F';
+const SCOPES       = 'Files.ReadWrite Sites.ReadWrite.All openid profile';
 
 const SCHOOL_NAMES = {HUHS:'Harding University High',POB:'Phillip O Berry Academy',WCHS:'West Charlotte High School',WMHS:'West Mecklenburg High'};
 const INSTRUCTOR_BLOCKS = {Tom:['1st','2nd','4th'],Chris:['1st','2nd','4th'],James:['2nd','4th']};
@@ -226,179 +247,190 @@ const ROSTER = [
   {name:'Venable, Kamron',school:'WMHS',program:'Electrical I',block:'4th',instructor:'Chris'},
 ];
 
-// ── PKCE AUTH (no external library) ──────────────────────────────────────────
-function generateCodeVerifier() {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  return btoa(String.fromCharCode(...array)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+// ── PKCE AUTH ─────────────────────────────────────────────────────────────────
+function generateCodeVerifier(){const a=new Uint8Array(32);crypto.getRandomValues(a);return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
+async function generateCodeChallenge(v){const d=new TextEncoder().encode(v);const h=await crypto.subtle.digest('SHA-256',d);return btoa(String.fromCharCode(...new Uint8Array(h))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
+
+let accessToken=null,siteId=null,driveId=null;
+let currentInstructor='',currentBlock='';
+let absentStudents=new Set(),currentRoster=[];
+let selectedDate=''; // YYYY-MM-DD
+
+function localToday(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-async function generateCodeChallenge(verifier) {
-  const data = new TextEncoder().encode(verifier);
-  const digest = await crypto.subtle.digest('SHA-256', data);
-  return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+function ymdToDisplay(ymd){
+  // Convert YYYY-MM-DD to MM/DD/YYYY
+  const [y,m,d]=ymd.split('-');
+  return `${m}/${d}/${y}`;
+}
+function displayToYmd(str){
+  // Convert MM/DD/YYYY to YYYY-MM-DD
+  const [m,d,y]=str.split('/');
+  return `${y}-${m}-${d}`;
 }
 
-let accessToken = null;
-let siteId = null, driveId = null;
-let currentInstructor='', currentBlock='';
-let absentStudents = new Set(), currentRoster = [];
-
-async function init() {
+async function init(){
   setStatus('');
-  const params = new URLSearchParams(window.location.search);
-  const hash = new URLSearchParams(window.location.hash.replace('#','?'));
-
-  // Check if returning from auth with code
-  const code = params.get('code');
-  if (code) {
-    const verifier = sessionStorage.getItem('pkce_verifier');
-    if (!verifier) { showScreen('login'); return; }
-    try {
+  const params=new URLSearchParams(window.location.search);
+  const code=params.get('code');
+  if(code){
+    const verifier=sessionStorage.getItem('pkce_verifier');
+    if(!verifier){showScreen('login');return;}
+    try{
       setStatus('Signing in...');
-      const tokenResp = await fetch(`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/x-www-form-urlencoded'},
-        body: new URLSearchParams({
-          client_id: CLIENT_ID,
-          grant_type: 'authorization_code',
-          code: code,
-          redirect_uri: REDIRECT_URI,
-          code_verifier: verifier,
-          scope: SCOPES
-        })
+      const resp=await fetch(`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`,{
+        method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+        body:new URLSearchParams({client_id:CLIENT_ID,grant_type:'authorization_code',code,redirect_uri:REDIRECT_URI,code_verifier:verifier,scope:SCOPES})
       });
-      const tokenData = await tokenResp.json();
-      if (tokenData.access_token) {
-        accessToken = tokenData.access_token;
-        sessionStorage.setItem('access_token', accessToken);
-        if (tokenData.refresh_token) sessionStorage.setItem('refresh_token', tokenData.refresh_token);
-        // Parse name from id_token
-        if (tokenData.id_token) {
-          const payload = JSON.parse(atob(tokenData.id_token.split('.')[1]));
-          sessionStorage.setItem('user_name', payload.name || payload.preferred_username || '');
-        }
-        window.history.replaceState({}, '', REDIRECT_URI);
+      const data=await resp.json();
+      if(data.access_token){
+        accessToken=data.access_token;
+        sessionStorage.setItem('access_token',accessToken);
+        if(data.refresh_token) sessionStorage.setItem('refresh_token',data.refresh_token);
+        if(data.id_token){const p=JSON.parse(atob(data.id_token.split('.')[1]));sessionStorage.setItem('user_name',p.name||p.preferred_username||'');}
+        window.history.replaceState({},'',(REDIRECT_URI));
         await setupAndShow();
-      } else {
-        showError('Token error: ' + (tokenData.error_description || JSON.stringify(tokenData)));
-        showScreen('login');
-      }
-    } catch(e) {
-      showError('Auth error: ' + e.message);
-      showScreen('login');
-    }
+      }else{showError('Token error: '+(data.error_description||JSON.stringify(data)));showScreen('login');}
+    }catch(e){showError('Auth error: '+e.message);showScreen('login');}
     return;
   }
-
-  // Check for existing token
-  const stored = sessionStorage.getItem('access_token');
-  if (stored) {
-    accessToken = stored;
-    try {
-      await setupAndShow();
-      return;
-    } catch(e) {
-      sessionStorage.removeItem('access_token');
-    }
-  }
-
+  const stored=sessionStorage.getItem('access_token');
+  if(stored){accessToken=stored;try{await setupAndShow();return;}catch(e){sessionStorage.removeItem('access_token');}}
   showScreen('login');
 }
 
-async function setupAndShow() {
-  const name = sessionStorage.getItem('user_name') || '';
-  if (name) {
-    const chip = document.getElementById('user-chip');
-    chip.style.display = 'flex';
-    const initials = name.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase();
-    document.getElementById('user-avatar').textContent = initials;
-    document.getElementById('user-name-short').textContent = name.split(' ')[0];
+async function setupAndShow(){
+  const name=sessionStorage.getItem('user_name')||'';
+  if(name){
+    document.getElementById('user-chip').style.display='flex';
+    const initials=name.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('user-avatar').textContent=initials;
+    document.getElementById('user-name-short').textContent=name.split(' ')[0];
   }
   await resolveFileIds();
+  // Set default date to today
+  const today=localToday();
+  selectedDate=today;
+  const picker=document.getElementById('date-picker');
+  picker.value=today;
+  picker.max=today; // can't select future dates
+  updateDateBadge();
   showScreen('main');
 }
 
-async function signIn() {
-  const verifier = generateCodeVerifier();
-  const challenge = await generateCodeChallenge(verifier);
-  sessionStorage.setItem('pkce_verifier', verifier);
-  const authUrl = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/authorize?` +
-    new URLSearchParams({
-      client_id: CLIENT_ID,
-      response_type: 'code',
-      redirect_uri: REDIRECT_URI,
-      scope: SCOPES,
-      code_challenge: challenge,
-      code_challenge_method: 'S256',
-      response_mode: 'query'
-    });
-  window.location.href = authUrl;
+async function signIn(){
+  const v=generateCodeVerifier();
+  const c=await generateCodeChallenge(v);
+  sessionStorage.setItem('pkce_verifier',v);
+  window.location.href=`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/authorize?`+new URLSearchParams({client_id:CLIENT_ID,response_type:'code',redirect_uri:REDIRECT_URI,scope:SCOPES,code_challenge:c,code_challenge_method:'S256',response_mode:'query'});
 }
+function signOut(){sessionStorage.clear();window.location.href=`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;}
 
-function signOut() {
-  sessionStorage.clear();
-  window.location.href = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
-}
-
-// ── GRAPH API ─────────────────────────────────────────────────────────────────
-async function graphGet(url) {
-  const r = await fetch(`https://graph.microsoft.com/v1.0${url}`,{headers:{Authorization:`Bearer ${accessToken}`}});
-  if (r.status === 401) { sessionStorage.removeItem('access_token'); showScreen('login'); throw new Error('Session expired. Please sign in again.'); }
-  if (!r.ok) throw new Error(`Graph ${r.status}: ${await r.text()}`);
+// ── GRAPH ─────────────────────────────────────────────────────────────────────
+async function graphGet(url){
+  const r=await fetch(`https://graph.microsoft.com/v1.0${url}`,{headers:{Authorization:`Bearer ${accessToken}`}});
+  if(r.status===401){sessionStorage.removeItem('access_token');showScreen('login');throw new Error('Session expired. Please sign in again.');}
+  if(!r.ok) throw new Error(`Graph ${r.status}: ${await r.text()}`);
   return r.json();
 }
-async function graphPatch(url, body) {
-  const r = await fetch(`https://graph.microsoft.com/v1.0${url}`,{method:'PATCH',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
-  if (!r.ok) throw new Error(`PATCH ${r.status}: ${await r.text()}`);
+async function graphPatch(url,body){
+  const r=await fetch(`https://graph.microsoft.com/v1.0${url}`,{method:'PATCH',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(`PATCH ${r.status}: ${await r.text()}`);
   return r.json();
 }
-async function resolveFileIds() {
-  const site = await graphGet(`/sites/${SITE_HOSTNAME}:${SITE_PATH}`);
-  siteId = site.id;
-  const file = await graphGet(`/sites/${siteId}/drive/items/${FILE_ID}`);
-  driveId = file.parentReference.driveId;
+async function resolveFileIds(){
+  const site=await graphGet(`/sites/${SITE_HOSTNAME}:${SITE_PATH}`);
+  siteId=site.id;
+  const file=await graphGet(`/sites/${siteId}/drive/items/${FILE_ID}`);
+  driveId=file.parentReference.driveId;
 }
 
 // ── EXCEL ─────────────────────────────────────────────────────────────────────
-function excelBase() { return `/drives/${driveId}/items/${FILE_ID}/workbook`; }
-function colLetter(n) { let s=''; while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26);} return s; }
-function todayStr() { const d=new Date(); return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${d.getFullYear()}`; }
+function excelBase(){return `/drives/${driveId}/items/${FILE_ID}/workbook`;}
+function colLetter(n){let s='';while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26);}return s;}
 
-async function updateCell(sheet, addr, val) {
+async function updateCell(sheet,addr,val){
   await graphPatch(`${excelBase()}/worksheets/${encodeURIComponent(sheet)}/range(address='${addr}')`,{values:[[val]]});
 }
-async function processSheet(sheet, students, absentSet) {
-  const range = await graphGet(`${excelBase()}/worksheets/${encodeURIComponent(sheet)}/usedRange`);
-  const vals = range.values;
-  if (!vals || !vals.length) return;
-  const hdr = vals[0];
-  const today = todayStr();
-  let todayCol = hdr.findIndex(h=>h&&String(h).startsWith(today));
-  if (todayCol===-1) { todayCol=hdr.length; await updateCell(sheet,`${colLetter(todayCol+1)}1`,today); }
-  const todayLtr = colLetter(todayCol+1);
-  const absDayCol = hdr.findIndex(h=>h&&String(h).toLowerCase().includes('absent day'));
-  for (let r=1;r<vals.length;r++) {
-    const rn=vals[r][0]; if(!rn) continue;
-    if (!students.some(s=>s.name===rn)) continue;
+
+async function processSheet(sheet, students, absentSet, dateStr){
+  // dateStr is MM/DD/YYYY
+  const range=await graphGet(`${excelBase()}/worksheets/${encodeURIComponent(sheet)}/usedRange`);
+  const vals=range.values;
+  if(!vals||!vals.length) return;
+  const hdr=vals[0];
+
+  // Find the date column - match MM/DD/YYYY or MM/DD/YY
+  let dateCol=hdr.findIndex(h=>{
+    if(!h) return false;
+    const s=String(h);
+    return s===dateStr||s.startsWith(dateStr.slice(0,5)); // match MM/DD at minimum
+  });
+
+  // Refine match to exact date
+  dateCol=hdr.findIndex(h=>h&&String(h)===dateStr);
+
+  const isNewDate=dateCol===-1;
+  if(isNewDate){
+    dateCol=hdr.length;
+    await updateCell(sheet,`${colLetter(dateCol+1)}1`,dateStr);
+  }
+  const dateLtr=colLetter(dateCol+1);
+  const absDayCol=hdr.findIndex(h=>h&&String(h).toLowerCase().includes('absent day'));
+
+  for(let r=1;r<vals.length;r++){
+    const rn=vals[r][0];if(!rn) continue;
+    const rnTrimmed=String(rn).trim();
+    if(!students.some(s=>s.name.trim()===rnTrimmed)) continue;
     const rowNum=r+1;
-    const isAbs=absentSet.has(rn);
-    await updateCell(sheet,`${todayLtr}${rowNum}`,isAbs?'A':'P');
-    if (isAbs&&absDayCol!==-1) {
+    const isAbs=absentSet.has(students.find(s=>s.name.trim()===rnTrimmed).name);
+    await updateCell(sheet,`${dateLtr}${rowNum}`,isAbs?'A':'P');
+    // Only update absent count for NEW date columns (not corrections)
+    if(isNewDate&&isAbs&&absDayCol!==-1){
       const cur=parseInt(vals[r][absDayCol])||0;
       await updateCell(sheet,`${colLetter(absDayCol+1)}${rowNum}`,cur+1);
     }
   }
+  return {isCorrection:!isNewDate};
+}
+
+// ── DATE UI ───────────────────────────────────────────────────────────────────
+function onDateChange(){
+  selectedDate=document.getElementById('date-picker').value;
+  updateDateBadge();
+  // Reset roster if already shown
+  absentStudents.clear();
+  if(currentInstructor&&currentBlock) renderRoster();
+  showWarning('');showError('');
+}
+
+function updateDateBadge(){
+  const badge=document.getElementById('date-badge');
+  const today=localToday();
+  if(selectedDate===today){
+    badge.textContent='Today';
+    badge.className='date-badge badge-today';
+    showWarning('');
+  } else {
+    const d=new Date(selectedDate+'T12:00:00');
+    badge.textContent=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    badge.className='date-badge badge-past';
+    showWarning('You are submitting attendance for a past date. The absent day count will NOT be changed automatically — please adjust it manually in Excel if needed.');
+  }
 }
 
 // ── UI ────────────────────────────────────────────────────────────────────────
-function showScreen(name) {
+function showScreen(name){
   document.getElementById('status-msg').style.display='none';
   ['login','main','success'].forEach(s=>document.getElementById(`screen-${s}`).classList.remove('active'));
   document.getElementById(`screen-${name}`).classList.add('active');
-  if (name==='main') document.getElementById('date-header').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  if(name==='main') document.getElementById('date-header').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
 }
 function setStatus(msg){const el=document.getElementById('status-msg');el.textContent=msg;el.style.display=msg?'block':'none';}
 function showError(msg){const el=document.getElementById('error-banner');el.textContent=msg;el.style.display=msg?'block':'none';}
+function showWarning(msg){const el=document.getElementById('warning-banner');el.textContent=msg;el.style.display=msg?'block':'none';}
 
 function onInstructorChange(){
   currentInstructor=document.getElementById('instructor-select').value;
@@ -409,7 +441,7 @@ function updateBlockBtns(){
   const allowed=currentInstructor?INSTRUCTOR_BLOCKS[currentInstructor]:[];
   ['1st','2nd','4th'].forEach(b=>{
     const btn=document.querySelector(`.block-btn[onclick="selectBlock('${b}')"]`);
-    if(!btn)return; btn.disabled=!allowed.includes(b); btn.classList.remove('active');
+    if(!btn)return;btn.disabled=!allowed.includes(b);btn.classList.remove('active');
   });
 }
 function selectBlock(b){
@@ -439,28 +471,39 @@ function renderRoster(){
   pill.textContent=`${count} absent`;
   count>0?pill.classList.remove('hidden'):pill.classList.add('hidden');
 }
+
 async function submitAttendance(){
-  if(!currentInstructor||!currentBlock||!currentRoster.length)return;
+  if(!currentInstructor||!currentBlock||!currentRoster.length) return;
   showError('');
   const btn=document.getElementById('submit-btn');
   btn.disabled=true;btn.innerHTML='<span class="loading-spinner"></span>Writing to Excel...';
-  try {
+  try{
+    const dateStr=ymdToDisplay(selectedDate); // MM/DD/YYYY for Excel column
     const bySchool={};
     currentRoster.forEach(s=>{if(!bySchool[s.school])bySchool[s.school]=[];bySchool[s.school].push(s);});
-    for(const[school,students]of Object.entries(bySchool)) await processSheet(school,students,absentStudents);
+    let anyCorrection=false;
+    for(const[school,students] of Object.entries(bySchool)){
+      const result=await processSheet(school,students,absentStudents,dateStr);
+      if(result&&result.isCorrection) anyCorrection=true;
+    }
     const absentList=[...absentStudents];
+    const d=new Date(selectedDate+'T12:00:00');
+    const friendlyDate=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
     const summary=Object.entries(bySchool).map(([k,v])=>{
       const ac=v.filter(s=>absentStudents.has(s.name)).length;
       return `<div class="success-detail-row"><strong>${SCHOOL_NAMES[k]}:</strong> ${ac>0?ac+' absent, '+(v.length-ac)+' present':'all present'}</div>`;
     }).join('');
-    document.getElementById('success-meta').textContent=`${currentInstructor} · ${currentBlock} block · ${todayStr()}`;
-    document.getElementById('success-detail').innerHTML=summary+(absentList.length?`<div class="success-detail-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><strong>Absent:</strong> ${absentList.join(', ')}</div>`:'');
+    document.getElementById('success-meta').textContent=`${currentInstructor} · ${currentBlock} block · ${friendlyDate}`;
+    document.getElementById('success-detail').innerHTML=summary
+      +(absentList.length?`<div class="success-detail-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><strong>Absent:</strong> ${absentList.join(', ')}</div>`:'')
+      +(anyCorrection?`<div class="success-detail-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);color:var(--warning-text)">This was a correction to a past date. Please review the absent day count in Excel manually.</div>`:'');
     showScreen('success');
-  } catch(e){
-    console.error(e);showError('Error: '+e.message);
+  }catch(e){
+    console.error(e);showError('Error writing to Excel: '+e.message);
     btn.disabled=false;btn.textContent='Submit attendance';
   }
 }
+
 function resetForm(){
   currentInstructor='';currentBlock='';absentStudents.clear();currentRoster=[];
   document.getElementById('instructor-select').value='';
@@ -468,6 +511,12 @@ function resetForm(){
   document.getElementById('roster-card').style.display='none';
   document.getElementById('submit-btn').disabled=false;
   document.getElementById('submit-btn').textContent='Submit attendance';
+  // Reset date to today
+  const today=localToday();
+  selectedDate=today;
+  document.getElementById('date-picker').value=today;
+  updateDateBadge();
+  showWarning('');showError('');
   showScreen('main');
 }
 
