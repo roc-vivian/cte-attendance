@@ -7,7 +7,7 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
   :root {
-    --bg:#F4F3EF;--surface:#FFF;--surface2:#F9F8F5;--border:rgba(143, 27, 27, 0.08);
+    --bg:#F4F3EF;--surface:#FFF;--surface2:#F9F8F5;--border:rgba(0,0,0,0.08);
     --border-strong:rgba(0,0,0,0.15);--text:#1A1A18;--text-2:#6B6B64;--text-3:#9B9B92;
     --accent:#1B4F8A;--accent-light:#E8EFF8;--accent-text:#0D2E52;
     --danger:#C0392B;--danger-light:#FDECEA;--danger-text:#7B241C;
@@ -375,7 +375,11 @@ async function processSheet(sheet, students, absentSet, dateStr){
 
   const isNewDate=dateCol===-1;
   if(isNewDate){
-    const newCol=hdr.length;
+    // Find the last column that looks like a date (M/D/YYYY), ignoring helper columns beyond attendance data
+    const isDateLike=v=>v&&/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(normalizeDate(String(v)));
+    let lastDateCol=4; // fallback: just after the fixed columns
+    for(let i=0;i<hdr.length;i++){if(isDateLike(hdr[i]))lastDateCol=i;}
+    const newCol=lastDateCol+1; // place new date right after the last attendance date
     await updateCell(sheet,`${colLetter(newCol+1)}1`,dateStr);
     // Write P/A into the new column
     const dateLtr=colLetter(newCol+1);
