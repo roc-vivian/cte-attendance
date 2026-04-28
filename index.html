@@ -352,7 +352,7 @@ async function resolveFileIds(){
 }
 
 // ── EXCEL ─────────────────────────────────────────────────────────────────────
-function excelBase(){return `/drives/${driveId}/items/${FILE_ID}/workbook`;}
+function excelBase(){return `/me/drive/items/${FILE_ID}/workbook`;}
 function colLetter(n){let s='';while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26);}return s;}
 
 async function updateCell(sheet,addr,val){
