@@ -7,7 +7,7 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
   :root {
-    --bg:#F4F3EF;--surface:#FFF;--surface2:#F9F8F5;--border:rgba(0,0,0,0.08);
+    --bg:#F4F3EF;--surface:#FFF;--surface2:#F9F8F5;--border:rgba(143, 27, 27, 0.08);
     --border-strong:rgba(0,0,0,0.15);--text:#1A1A18;--text-2:#6B6B64;--text-3:#9B9B92;
     --accent:#1B4F8A;--accent-light:#E8EFF8;--accent-text:#0D2E52;
     --danger:#C0392B;--danger-light:#FDECEA;--danger-text:#7B241C;
@@ -225,7 +225,7 @@ const ROSTER = [
   {name:'McCloud, Jakari',school:'WCHS',program:'Electrical I',block:'2nd',instructor:'Chris'},
   {name:'McGee, Nizione',school:'WCHS',program:'Electrical I',block:'2nd',instructor:'Chris'},
   {name:'Minaya Dayeh, Jamiel',school:'WCHS',program:'Electrical I',block:'2nd',instructor:'Chris'},
-  {name:'Moore, Jordan',school:'WCHS',program:'Carpentry I',block:'2nd',instructor:'Tom'},
+
   {name:'Moua, Kyle',school:'WCHS',program:'Apt Mnt',block:'2nd',instructor:'James'},
   {name:'Muria Martinez, Luis',school:'WCHS',program:'Electrical I',block:'2nd',instructor:'Chris'},
   {name:'Phillips, Yasmine',school:'WCHS',program:'Apt Mnt',block:'2nd',instructor:'James'},
@@ -261,14 +261,21 @@ function localToday(){
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function ymdToDisplay(ymd){
-  // Convert YYYY-MM-DD to MM/DD/YYYY
+  // Convert YYYY-MM-DD to M/D/YYYY (no leading zeros, matching Excel header format)
   const [y,m,d]=ymd.split('-');
-  return `${m}/${d}/${y}`;
+  return `${parseInt(m)}/${parseInt(d)}/${y}`;
 }
 function displayToYmd(str){
-  // Convert MM/DD/YYYY to YYYY-MM-DD
+  // Convert M/D/YYYY to YYYY-MM-DD
   const [m,d,y]=str.split('/');
-  return `${y}-${m}-${d}`;
+  return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+// ── FIX: Normalize date strings by stripping leading zeros ────────────────────
+// Excel stores dates as "1/22/2026" but JS date formatting may produce "01/22/2026"
+// This ensures both sides match regardless of leading zeros.
+function normalizeDate(s){
+  return String(s).replace(/^0+(\d)/,'$1').replace(/\/0+(\d)/g,'/$1');
 }
 
 async function init(){
@@ -356,41 +363,47 @@ async function updateCell(sheet,addr,val){
 }
 
 async function processSheet(sheet, students, absentSet, dateStr){
-  // dateStr is MM/DD/YYYY
+  // dateStr is already in normalized M/D/YYYY format (no leading zeros)
   const range=await graphGet(`${excelBase()}/worksheets/${encodeURIComponent(sheet)}/usedRange`);
   const vals=range.values;
   if(!vals||!vals.length) return;
   const hdr=vals[0];
 
-  // Find the date column - match MM/DD/YYYY or MM/DD/YY
-  let dateCol=hdr.findIndex(h=>{
-    if(!h) return false;
-    const s=String(h);
-    return s===dateStr||s.startsWith(dateStr.slice(0,5)); // match MM/DD at minimum
-  });
-
-  // Refine match to exact date
-  dateCol=hdr.findIndex(h=>h&&String(h)===dateStr);
+  // FIX: Normalize both the header value and the target date before comparing
+  // This handles mismatches like "01/22/2026" vs "1/22/2026"
+  const dateCol=hdr.findIndex(h=>h&&normalizeDate(String(h))===normalizeDate(dateStr));
 
   const isNewDate=dateCol===-1;
   if(isNewDate){
-    dateCol=hdr.length;
-    await updateCell(sheet,`${colLetter(dateCol+1)}1`,dateStr);
-  }
-  const dateLtr=colLetter(dateCol+1);
-  const absDayCol=hdr.findIndex(h=>h&&String(h).toLowerCase().includes('absent day'));
-
-  for(let r=1;r<vals.length;r++){
-    const rn=vals[r][0];if(!rn) continue;
-    const rnTrimmed=String(rn).trim();
-    if(!students.some(s=>s.name.trim()===rnTrimmed)) continue;
-    const rowNum=r+1;
-    const isAbs=absentSet.has(students.find(s=>s.name.trim()===rnTrimmed).name);
-    await updateCell(sheet,`${dateLtr}${rowNum}`,isAbs?'A':'P');
-    // Only update absent count for NEW date columns (not corrections)
-    if(isNewDate&&isAbs&&absDayCol!==-1){
-      const cur=parseInt(vals[r][absDayCol])||0;
-      await updateCell(sheet,`${colLetter(absDayCol+1)}${rowNum}`,cur+1);
+    const newCol=hdr.length;
+    await updateCell(sheet,`${colLetter(newCol+1)}1`,dateStr);
+    // Write P/A into the new column
+    const dateLtr=colLetter(newCol+1);
+    const absDayCol=hdr.findIndex(h=>h&&String(h).toLowerCase().includes('absent day'));
+    for(let r=1;r<vals.length;r++){
+      const rn=vals[r][0];if(!rn) continue;
+      const rnTrimmed=String(rn).trim();
+      const match=students.find(s=>s.name.trim()===rnTrimmed);
+      if(!match) continue;
+      const rowNum=r+1;
+      const isAbs=absentSet.has(match.name);
+      await updateCell(sheet,`${dateLtr}${rowNum}`,isAbs?'A':'P');
+      if(isAbs&&absDayCol!==-1){
+        const cur=parseInt(vals[r][absDayCol])||0;
+        await updateCell(sheet,`${colLetter(absDayCol+1)}${rowNum}`,cur+1);
+      }
+    }
+  } else {
+    // Date column already exists — write into it (correction mode, no absent count update)
+    const dateLtr=colLetter(dateCol+1);
+    for(let r=1;r<vals.length;r++){
+      const rn=vals[r][0];if(!rn) continue;
+      const rnTrimmed=String(rn).trim();
+      const match=students.find(s=>s.name.trim()===rnTrimmed);
+      if(!match) continue;
+      const rowNum=r+1;
+      const isAbs=absentSet.has(match.name);
+      await updateCell(sheet,`${dateLtr}${rowNum}`,isAbs?'A':'P');
     }
   }
   return {isCorrection:!isNewDate};
@@ -478,7 +491,7 @@ async function submitAttendance(){
   const btn=document.getElementById('submit-btn');
   btn.disabled=true;btn.innerHTML='<span class="loading-spinner"></span>Writing to Excel...';
   try{
-    const dateStr=ymdToDisplay(selectedDate); // MM/DD/YYYY for Excel column
+    const dateStr=ymdToDisplay(selectedDate); // M/D/YYYY — no leading zeros, matches Excel
     const bySchool={};
     currentRoster.forEach(s=>{if(!bySchool[s.school])bySchool[s.school]=[];bySchool[s.school].push(s);});
     let anyCorrection=false;
