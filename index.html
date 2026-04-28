@@ -251,7 +251,7 @@ const ROSTER = [
 function generateCodeVerifier(){const a=new Uint8Array(32);crypto.getRandomValues(a);return btoa(String.fromCharCode(...a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
 async function generateCodeChallenge(v){const d=new TextEncoder().encode(v);const h=await crypto.subtle.digest('SHA-256',d);return btoa(String.fromCharCode(...new Uint8Array(h))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');}
 
-let accessToken=null,siteId=null,driveId=null;
+let accessToken=null,siteId=null,driveId=null,realFileId=null;
 let currentInstructor='',currentBlock='';
 let absentStudents=new Set(),currentRoster=[];
 let selectedDate=''; // YYYY-MM-DD
@@ -350,12 +350,14 @@ async function graphPatch(url,body){
 async function resolveFileIds(){
   const site=await graphGet(`/sites/${SITE_HOSTNAME}:${SITE_PATH}`);
   siteId=site.id;
-  const file=await graphGet(`/sites/${siteId}/drive/items/${FILE_ID}`);
-  driveId=file.parentReference.driveId;
+  const drive=await graphGet(`/sites/${siteId}/drive`);
+  driveId=drive.id;
+  const file=await graphGet(`/sites/${siteId}/drive/root:/26SP POB Campus Attendance Form.xlsx`);
+  realFileId=file.id;
 }
 
 // ── EXCEL ─────────────────────────────────────────────────────────────────────
-function excelBase(){return `/drives/${driveId}/items/${FILE_ID}/workbook`;}
+function excelBase(){return `/drives/${driveId}/items/${realFileId}/workbook`;}
 function colLetter(n){let s='';while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26);}return s;}
 
 async function updateCell(sheet,addr,val){
