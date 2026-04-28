@@ -164,10 +164,9 @@
 const CLIENT_ID    = 'f0bd9b6b-812b-47b8-b1d7-3b9a50981380';
 const TENANT_ID    = 'da0049e7-193f-4cca-9cf3-565e3fa8e0f9';
 const REDIRECT_URI = 'https://roc-vivian.github.io/cte-attendance/';
-const SITE_HOSTNAME= 'roccharlotte.sharepoint.com';
-const SITE_PATH    = '/sites/POBCampus_WCE';
-const FILE_ID      = '2E3E75EC-7F1A-4C00-B723-A6A95F9C820F';
-const SCOPES       = 'Files.ReadWrite Sites.ReadWrite.All openid profile';
+const DRIVE_ID     = '64c7dcc1-a975-4fbd-9551-d67fca78b837';
+const FILE_ID      = '47998f32-faab-438f-9024-e3907a694ec9';
+const SCOPES       = 'Files.ReadWrite openid profile';
 
 const SCHOOL_NAMES = {HUHS:'Harding University High',POB:'Phillip O Berry Academy',WCHS:'West Charlotte High School',WMHS:'West Mecklenburg High'};
 const INSTRUCTOR_BLOCKS = {Tom:['1st','2nd','4th'],Chris:['1st','2nd','4th'],James:['2nd','4th']};
@@ -348,10 +347,8 @@ async function graphPatch(url,body){
   return r.json();
 }
 async function resolveFileIds(){
-  const site=await graphGet(`/sites/${SITE_HOSTNAME}:${SITE_PATH}`);
-  siteId=site.id;
-  const file=await graphGet(`/sites/${siteId}/drive/items/${FILE_ID}`);
-  driveId=file.parentReference.driveId;
+  // Personal OneDrive — drive and file IDs are hardcoded, no site resolution needed
+  driveId=DRIVE_ID;
 }
 
 // ── EXCEL ─────────────────────────────────────────────────────────────────────
