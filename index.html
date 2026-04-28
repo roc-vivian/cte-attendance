@@ -164,9 +164,10 @@
 const CLIENT_ID    = 'f0bd9b6b-812b-47b8-b1d7-3b9a50981380';
 const TENANT_ID    = 'da0049e7-193f-4cca-9cf3-565e3fa8e0f9';
 const REDIRECT_URI = 'https://roc-vivian.github.io/cte-attendance/';
-const DRIVE_ID     = '64c7dcc1-a975-4fbd-9551-d67fca78b837';
-const FILE_ID      = '3b98dfda-9ef8-4001-aaa1-22f6f1000800';
-const SCOPES       = 'Files.ReadWrite openid profile';
+const SITE_HOSTNAME= 'roccharlotte-my.sharepoint.com';
+const SITE_PATH    = '/personal/vscharager_roccharlotte_org';
+const FILE_ID      = '08D8B208-7333-46A7-96CE-1A2651F5F5B6';
+const SCOPES       = 'Files.ReadWrite Sites.ReadWrite.All openid profile';
 
 const SCHOOL_NAMES = {HUHS:'Harding University High',POB:'Phillip O Berry Academy',WCHS:'West Charlotte High School',WMHS:'West Mecklenburg High'};
 const INSTRUCTOR_BLOCKS = {Tom:['1st','2nd','4th'],Chris:['1st','2nd','4th'],James:['2nd','4th']};
@@ -347,12 +348,14 @@ async function graphPatch(url,body){
   return r.json();
 }
 async function resolveFileIds(){
-  // Personal OneDrive — drive and file IDs are hardcoded, no site resolution needed
-  driveId=DRIVE_ID;
+  const site=await graphGet(`/sites/${SITE_HOSTNAME}:${SITE_PATH}`);
+  siteId=site.id;
+  const file=await graphGet(`/sites/${siteId}/drive/items/${FILE_ID}`);
+  driveId=file.parentReference.driveId;
 }
 
 // ── EXCEL ─────────────────────────────────────────────────────────────────────
-function excelBase(){return `/me/drive/items/${FILE_ID}/workbook`;}
+function excelBase(){return `/drives/${driveId}/items/${FILE_ID}/workbook`;}
 function colLetter(n){let s='';while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26);}return s;}
 
 async function updateCell(sheet,addr,val){
