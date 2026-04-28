@@ -283,7 +283,7 @@ async function init(){
   const params=new URLSearchParams(window.location.search);
   const code=params.get('code');
   if(code){
-    const verifier=sessionStorage.getItem('pkce_verifier');
+    const verifier=localStorage.getItem('pkce_verifier');
     if(!verifier){showScreen('login');return;}
     try{
       setStatus('Signing in...');
@@ -297,6 +297,7 @@ async function init(){
         sessionStorage.setItem('access_token',accessToken);
         if(data.refresh_token) sessionStorage.setItem('refresh_token',data.refresh_token);
         if(data.id_token){const p=JSON.parse(atob(data.id_token.split('.')[1]));sessionStorage.setItem('user_name',p.name||p.preferred_username||'');}
+        localStorage.removeItem('pkce_verifier');
         window.history.replaceState({},'',(REDIRECT_URI));
         await setupAndShow();
       }else{showError('Token error: '+(data.error_description||JSON.stringify(data)));showScreen('login');}
@@ -330,7 +331,7 @@ async function setupAndShow(){
 async function signIn(){
   const v=generateCodeVerifier();
   const c=await generateCodeChallenge(v);
-  sessionStorage.setItem('pkce_verifier',v);
+  localStorage.setItem('pkce_verifier',v);
   window.location.href=`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/authorize?`+new URLSearchParams({client_id:CLIENT_ID,response_type:'code',redirect_uri:REDIRECT_URI,scope:SCOPES,code_challenge:c,code_challenge_method:'S256',response_mode:'query'});
 }
 function signOut(){sessionStorage.clear();window.location.href=`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;}
