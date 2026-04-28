@@ -498,10 +498,9 @@ async function submitAttendance(){
     const dateStr=ymdToDisplay(selectedDate); // M/D/YYYY — no leading zeros, matches Excel
     const bySchool={};
     currentRoster.forEach(s=>{if(!bySchool[s.school])bySchool[s.school]=[];bySchool[s.school].push(s);});
-    let anyCorrection=false;
+    const anyCorrection=selectedDate<localToday(); // true only if selected date is before today
     for(const[school,students] of Object.entries(bySchool)){
-      const result=await processSheet(school,students,absentStudents,dateStr);
-      if(result&&result.isCorrection) anyCorrection=true;
+      await processSheet(school,students,absentStudents,dateStr);
     }
     const absentList=[...absentStudents];
     const d=new Date(selectedDate+'T12:00:00');
