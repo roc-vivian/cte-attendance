@@ -284,7 +284,7 @@ async function init(){
   const code=params.get('code');
   if(code){
     const verifier=localStorage.getItem('pkce_verifier');
-    if(!verifier){showScreen('login');return;}
+    if(!verifier){showScreen('login');showError('Login failed: session key missing. Please try again.');return;}
     try{
       setStatus('Signing in...');
       const resp=await fetch(`https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`,{
