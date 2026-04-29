@@ -305,11 +305,12 @@ async function init(){
     return;
   }
   const stored=sessionStorage.getItem('access_token');
-  if(stored){accessToken=stored;try{await setupAndShow();return;}catch(e){sessionStorage.removeItem('access_token');}}
+  if(stored){accessToken=stored;try{await setupAndShow();return;}catch(e){sessionStorage.removeItem('access_token');showScreen('login');showError('Session error: '+e.message);}}
   showScreen('login');
 }
 
 async function setupAndShow(){
+  try{
   const name=sessionStorage.getItem('user_name')||'';
   if(name){
     document.getElementById('user-chip').style.display='flex';
@@ -318,14 +319,14 @@ async function setupAndShow(){
     document.getElementById('user-name-short').textContent=name.split(' ')[0];
   }
   await resolveFileIds();
-  // Set default date to today
   const today=localToday();
   selectedDate=today;
   const picker=document.getElementById('date-picker');
   picker.value=today;
-  picker.max=today; // can't select future dates
+  picker.max=today;
   updateDateBadge();
   showScreen('main');
+  }catch(e){showScreen('login');showError('Setup error: '+e.message);throw e;}
 }
 
 async function signIn(){
