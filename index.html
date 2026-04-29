@@ -350,12 +350,9 @@ async function graphPatch(url,body){
   return r.json();
 }
 async function resolveFileIds(){
-  const site=await graphGet(`/sites/${SITE_HOSTNAME}:${SITE_PATH}`);
-  siteId=site.id;
-  const drive=await graphGet(`/sites/${siteId}/drive`);
-  driveId=drive.id;
-  const file=await graphGet(`/sites/${siteId}/drive/root:/26SP POB Campus Attendance Form.xlsx`);
-  realFileId=file.id;
+  // Hardcoded to avoid SharePoint site lookup failing for non-owner accounts
+  driveId='b!oH2FBbO8Rk6kN9lmAUxde1O_XQGmNrZDg_XBzlGd_IxW7T3yd2r9SZ9RkjdOXK9t';
+  realFileId='01B4CX6UIIWLMAQM3TU5DJNTQ2EZI7L5NW';
 }
 
 // ── EXCEL ─────────────────────────────────────────────────────────────────────
