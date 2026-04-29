@@ -167,7 +167,7 @@ const REDIRECT_URI = 'https://roc-vivian.github.io/cte-attendance/';
 const SITE_HOSTNAME= 'roccharlotte.sharepoint.com';
 const SITE_PATH    = '/sites/POBCampus_WCE';
 const FILE_ID      = 'D8DA3CA0-1EF9-4B84-8936-E9B377F61B6F';
-const SCOPES       = 'Files.ReadWrite.All Sites.ReadWrite.All openid profile';
+const SCOPES       = 'Files.ReadWrite Sites.ReadWrite.All openid profile';
 
 const SCHOOL_NAMES = {HUHS:'Harding University High',POB:'Phillip O Berry Academy',WCHS:'West Charlotte High School',WMHS:'West Mecklenburg High'};
 const INSTRUCTOR_BLOCKS = {Tom:['1st','2nd','4th'],Chris:['1st','2nd','4th'],James:['2nd','4th']};
@@ -350,9 +350,20 @@ async function graphPatch(url,body){
   return r.json();
 }
 async function resolveFileIds(){
-  // Hardcoded IDs for personal OneDrive file (shared with all instructors)
-  driveId='b!oH2FBbO8Rk6kN9lmAUxde1O_XQGmNrZDg_XBzlGd_IxW7T3yd2r9SZ9RkjdOXK9t';
-  realFileId='01B4CX6UIIWLMAQM3TU5DJNTQ2EZI7L5NW';
+  // First try direct access (works for file owner)
+  try{
+    const test=await graphGet(`/drives/b!oH2FBbO8Rk6kN9lmAUxde1O_XQGmNrZDg_XBzlGd_IxW7T3yd2r9SZ9RkjdOXK9t/items/01B4CX6UIIWLMAQM3TU5DJNTQ2EZI7L5NW`);
+    driveId='b!oH2FBbO8Rk6kN9lmAUxde1O_XQGmNrZDg_XBzlGd_IxW7T3yd2r9SZ9RkjdOXK9t';
+    realFileId='01B4CX6UIIWLMAQM3TU5DJNTQ2EZI7L5NW';
+    return;
+  }catch(e){
+    // Not the owner — look up via sharedWithMe
+  }
+  const shared=await graphGet(`/me/drive/sharedWithMe`);
+  const item=shared.value.find(f=>f.name==='26SP POB Campus Attendance Form.xlsx');
+  if(!item) throw new Error('File not found in your shared files. Please ask Vivian to share the attendance file with you.');
+  driveId=item.remoteItem.parentReference.driveId;
+  realFileId=item.remoteItem.id;
 }
 
 // ── EXCEL ─────────────────────────────────────────────────────────────────────
