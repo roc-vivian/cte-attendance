@@ -350,11 +350,11 @@ async function graphPatch(url,body){
   return r.json();
 }
 async function resolveFileIds(){
-  const site=await graphGet(`/sites/${SITE_HOSTNAME}:${SITE_PATH}`);
-  siteId=site.id;
-  const file=await graphGet(`/sites/${siteId}/drive/items/${FILE_ID}`);
-  driveId=file.parentReference.driveId;
-  realFileId=file.id;
+  // Hardcoded SharePoint site IDs for POBCampus_WCE shared site
+  siteId='roccharlotte.sharepoint.com,05857da0-bcb3-4e46-a437-d966014c5d7b,015dbf53-36a6-43b6-83f5-c1ce519dfc8c';
+  const drive=await graphGet(`/sites/${siteId}/drive`);
+  driveId=drive.id;
+  realFileId=FILE_ID;
 }
 
 // ── EXCEL ─────────────────────────────────────────────────────────────────────
