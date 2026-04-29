@@ -350,11 +350,9 @@ async function graphPatch(url,body){
   return r.json();
 }
 async function resolveFileIds(){
-  // Hardcoded SharePoint site IDs for POBCampus_WCE shared site
-  siteId='roccharlotte.sharepoint.com,05857da0-bcb3-4e46-a437-d966014c5d7b,015dbf53-36a6-43b6-83f5-c1ce519dfc8c';
-  const drive=await graphGet(`/sites/${siteId}/drive`);
-  driveId=drive.id;
-  realFileId=FILE_ID;
+  // Hardcoded IDs for personal OneDrive file (shared with all instructors)
+  driveId='b!oH2FBbO8Rk6kN9lmAUxde1O_XQGmNrZDg_XBzlGd_IxW7T3yd2r9SZ9RkjdOXK9t';
+  realFileId='01B4CX6UIIWLMAQM3TU5DJNTQ2EZI7L5NW';
 }
 
 // ── EXCEL ─────────────────────────────────────────────────────────────────────
